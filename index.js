@@ -1,4 +1,5 @@
 var count = 0
+const PORT = process.env.PORT || 3000
 require("http").createServer(
   (request, response) => {
     if (request.url == '/favicon.ico') return response.end('')
@@ -6,5 +7,5 @@ require("http").createServer(
       return response.end(`You are the visitor number ${++count}.`)
     if (request.url == '/count') return response.end(String(++count))
   }
-).listen(3000)
+).listen(PORT)
 
