@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/Victt0r/heruku-visit-counter/issues"
   },
-  "homepage": "https://github.com/Victt0r/heruku-visit-counter#readme"
+  "homepage": "https://github.com/Victt0r/heruku-visit-counter#readme",
+  "dependencies": {
+    "mongodb": "^3.3.1"
+  }
 }
