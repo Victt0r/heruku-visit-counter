@@ -7,7 +7,7 @@ mongoConnectStr = 'mongodb+srv://user1:N134bmOcJYMqRX4D@cluster007-gphrw.gcp.mon
 var db, coll
 
 const MongoClient = require("mongodb").MongoClient
-const mongoClient = new MongoClient(mongoConnectStr, { useNewUrlParser: true });
+const mongoClient = new MongoClient(mongoConnectStr, { useNewUrlParser: true, useUnifiedTopology: true});
 mongoClient.connect(async function (err, client) {
 
   if (err) {
@@ -24,8 +24,16 @@ http.createServer(
   (request, response) => {
     if (request.url == '/favicon.ico') return response.end('')
     if (request.url == '/') {
-      response.end(`You are the visitor number ${++count}.`)
+      response.end(`<html><head></head><body> You are the visitor number ${++count}. <input id=newTask /> 
+      <div id=div></div>
+      <script>
+
+        newTask.onkeydown = function (event) {
+          if (event.key == 'Enter') div.innerHTML = div.innerHTML + "<div>" + newTask.value +"</div>"}
+      </script>
+      </body></html>`)
       coll.updateOne({ id: 1 }, { $set: { count: count } })
+
     }
     if (request.url == '/count') {
       response.end(String(++count))
@@ -40,3 +48,4 @@ http.createServer(
 setInterval(function () {
   http.get("http://heruku-visit-counter.herokuapp.com/count")
 }, 29 * 60000); // every 29 minutes 
+
