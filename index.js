@@ -1,48 +1,41 @@
-var count = 0
-const PORT = process.env.PORT || 3000
-const http = require("http")
 
-mongoConnectStr = 'mongodb+srv://user1:N134bmOcJYMqRX4D@cluster007-gphrw.gcp.mongodb.net/test?retryWrites=true&w=majority'
+  a = 333
 
-var db, coll
+const PORT = process.env.PORT || 3000,
+  http = require("http"),
+  requestHandler = require("./requestHandler"),
+  fs = require("fs"),
+  path = require("path"),
+  templatePath = path.join(__dirname, "indexTemplate.html"),
 
-const MongoClient = require("mongodb").MongoClient
-const mongoClient = new MongoClient(mongoConnectStr, { useNewUrlParser: true, useUnifiedTopology: true});
+  mongoConnectStr = 'mongodb+srv://user1:N134bmOcJYMqRX4D' +
+    '@cluster007-gphrw.gcp.mongodb.net/test?retryWrites=true&w=majority',
+  MongoClient = require("mongodb").MongoClient,
+  mongoClient = new MongoClient(mongoConnectStr,
+    { useNewUrlParser: true, useUnifiedTopology: true })
+
+// var template = "", count = 0, db, countColl
+
+fs.readFile(templatePath, { encoding: 'utf-8' }, (err, html) =>
+  template = html)
+
 mongoClient.connect(async function (err, client) {
-
-  if (err) {
-    return console.log(err);
-  }
+  if (err) { return console.log(err) }
   // тут взаимодействие с базой данных
   db = client.db("counter_db")
-  coll = db.collection("counter_coll")
-  count = (await coll.findOne({ id: 1 })).count
-
+  countColl = db.collection("counter_coll")
+  todoColl = db.collection("todos")
+  console.log("dbconected")
+  count = (await countColl.findOne({ id: 1 })).count
 })
+// objectToCreateServers = require('http')
+// functionToHandleRequests = function (request, response) { ... }
+// server = objectToCreateServers.createServer(functionToHandleRequests)
+// server.listen(port)
 
-http.createServer(
-  (request, response) => {
-    if (request.url == '/favicon.ico') return response.end('')
-    if (request.url == '/') {
-      response.end(`<html><head></head><body> You are the visitor number ${++count}. <input id=newTask /> 
-      <div id=div></div>
-      <script>
 
-        newTask.onkeydown = function (event) {
-          if (event.key == 'Enter') div.innerHTML = div.innerHTML + "<div>" + newTask.value +"</div>"}
-      </script>
-      </body></html>`)
-      coll.updateOne({ id: 1 }, { $set: { count: count } })
-
-    }
-    if (request.url == '/count') {
-      response.end(String(++count))
-      coll.updateOne({ id: 1 }, { $set: { count: count } })
-    }
-
-  }
-).listen(PORT)
-
+http.createServer(requestHandler)
+  .listen(PORT, () => console.log("Server started on port 3000"))
 
 
 setInterval(function () {

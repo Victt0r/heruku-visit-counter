@@ -1,0 +1,53 @@
+<html lang="ru">
+
+<head>
+  <style>
+    .selected {
+      font-weight: bold;
+      border: 1px dashed grey;
+      border-radius: 4px
+    }
+  </style>
+</head>
+
+<body> You are the visitor number ${++count}. <input id=newTask />
+  <div id=div>${todoHTML}</div>
+
+  <script>
+    newTask.onkeydown = function (event) {
+      if (event.key == 'Enter' && newTask.value != "") {
+        newTask.value = newTask.value.trim()
+        div.innerHTML = div.innerHTML + "<div>" + newTask.value + "</div>"
+        fetch(location.href + "addtodo/" + newTask.value.replace(/#/g, ""))
+      }
+      event.stopPropagation()
+    }
+    div.onclick = function (event) {
+      if (event.target == div) return
+      try { div.querySelector(".selected").classList.remove("selected") }
+      catch { }
+      event.target.classList.add("selected")
+    }
+    document.body.onkeydown = function (event) {
+      var target = div.querySelector(".selected")
+      if (target) {
+
+        if (event.key == "F2") {
+          target.oldText = target.innerText
+          target.contentEditable = true
+        }
+        if (event.key == "Enter" && target.contentEditable) {
+          target.contentEditable = false
+          fetch(location.href + "updtodo/" + target.oldText + "/" + target.innerText)
+        }
+        if (event.key == "Delete") {
+          target.nextElementSibling.remove()
+          target.remove()
+          fetch(location.href + "removetodo/" + target.innerText)
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
