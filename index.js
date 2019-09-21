@@ -1,6 +1,3 @@
-
-  a = 333
-
 const PORT = process.env.PORT || 3000,
   http = require("http"),
   requestHandler = require("./requestHandler"),
@@ -14,19 +11,21 @@ const PORT = process.env.PORT || 3000,
   mongoClient = new MongoClient(mongoConnectStr,
     { useNewUrlParser: true, useUnifiedTopology: true })
 
-// var template = "", count = 0, db, countColl
 
-fs.readFile(templatePath, { encoding: 'utf-8' }, (err, html) =>
-  template = html)
+fs.readFile(templatePath, { encoding: 'utf-8' }, (err, html) => {
+  if (err) { return console.log(err) }
+  global.template = html
+  console.log("Template loaded")
+})
 
 mongoClient.connect(async function (err, client) {
   if (err) { return console.log(err) }
   // тут взаимодействие с базой данных
-  db = client.db("counter_db")
-  countColl = db.collection("counter_coll")
-  todoColl = db.collection("todos")
-  console.log("dbconected")
-  count = (await countColl.findOne({ id: 1 })).count
+  global.db = client.db("counter_db")
+  global.countColl = db.collection("counter_coll")
+  global.todoColl = db.collection("todos")
+  global.count = (await countColl.findOne({ id: 1 })).count
+  console.log("Connected to database")
 })
 // objectToCreateServers = require('http')
 // functionToHandleRequests = function (request, response) { ... }

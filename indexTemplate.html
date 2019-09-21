@@ -17,8 +17,9 @@
     newTask.onkeydown = function (event) {
       if (event.key == 'Enter' && newTask.value != "") {
         newTask.value = newTask.value.trim()
-        div.innerHTML = div.innerHTML + "<div>" + newTask.value + "</div>"
-        fetch(location.href + "addtodo/" + newTask.value.replace(/#/g, ""))
+        div.innerHTML = div.innerHTML + "<span>" + newTask.value + "</span><br>"
+        // fetch(location.href + "api/addtodo/" +newTask.value.replace(/#/g,""))
+        api("todo", "add", newTask.value.replace(/#/g, ""))
       }
       event.stopPropagation()
     }
@@ -38,15 +39,27 @@
         }
         if (event.key == "Enter" && target.contentEditable) {
           target.contentEditable = false
-          fetch(location.href + "updtodo/" + target.oldText + "/" + target.innerText)
+          // fetch(location.href + "api/updtodo/" + target.oldText + "/" + target.innerText)
+          api("todo", "update", target.oldText, target.innerText)
         }
         if (event.key == "Delete") {
           target.nextElementSibling.remove()
           target.remove()
-          fetch(location.href + "removetodo/" + target.innerText)
+          // fetch(location.href + "api/removetodo/" + target.innerText)
+          api("todo", "remove", target.innerText)
         }
       }
     }
+    function api(...parts) {
+      parts.unshift(location.href + "api")
+      return fetch(parts.join("/"))
+    } 
+  fetch(location.href + "api/endeavor/add", {headers:{
+    endeavor:encodeURI("освоить программирование"),
+    details:encodeURI("знать js на уровне junior"),
+    deadline:"2020-03-17"
+
+  }})
   </script>
 </body>
 

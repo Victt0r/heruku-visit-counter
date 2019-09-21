@@ -1,5 +1,4 @@
 async function requestHandler(request, response) {
-  console.log(a)
   if (request.url == '/favicon.ico') return response.end('')
 
   if (request.url == '/') {
@@ -11,31 +10,49 @@ async function requestHandler(request, response) {
       .replace("${todoHTML}", todoHTML))
 
   }
+  if (request.url.startsWith('/api/')) {
+    request.url = request.url.replace("/api", "")
+    if (request.url == '/count') {
+      countColl.updateOne({ id: 1 }, { $set: { count: ++count } })
+      return response.end(String(count))
+    }
+    if (request.url.startsWith('/todo/')) {
+      request.url = request.url.replace("/todo", "")
+      
+      if (request.url.startsWith('/add')) {
+        const todo = decodeURI(request.url.slice(5))
+        todoColl.insertOne({ todo })
+        return response.end("")
+      }
+      
+      if (request.url.startsWith('/remove')) {
+        const todo = decodeURI(request.url.slice(8))
+        todoColl.deleteOne({ todo })
+        return response.end("")
+      }
+      
+      if (request.url.startsWith('/update')) {
+        const str = decodeURI(request.url.slice(8))
+        const [oldTodo, todo] = str.split("/")
+        todoColl.updateOne({ todo: oldTodo }, { $set: { todo } })
+        return response.end("")
+      }
+    }
+    if (request.url.startsWith('/endeavor/')) {
+      request.url = request.url.replace("/endeavor", "")
+      if (request.url.startsWith('/add')){
+        const name = decodeURI(request.headers.endeavor)
+        const details = decodeURI(request.headers.details)
+        const deadline = request.headers.deadline
+        db.collection("endeavor").insertOne({name, details, deadline})
+        return response.end("")
+      }
 
-  if (request.url == '/count') {
-    countColl.updateOne({ id: 1 }, { $set: { count: ++count } })
-    return response.end(String(count))
-  }
+    }
 
-  if (request.url.startsWith('/addtodo')) {
-    const todo = decodeURI(request.url.slice(9))
-    todoColl.insertOne({ todo })
-    return response.end("")
-  }
-
-  if (request.url.startsWith('/removetodo')) {
-    const todo = decodeURI(request.url.slice(12))
-    todoColl.deleteOne({ todo })
-    return response.end("")
-  }
-
-  if (request.url.startsWith('/updtodo')) {
-    const str = decodeURI(request.url.slice(9))
-    const [oldTodo, todo] = str.split("/")
-    todoColl.updateOne({ todo: oldTodo }, { $set: { todo } })
-    return response.end("")
   }
   response.end(request.url + " is just wrong")
 }
+
 module.exports = requestHandler
 
