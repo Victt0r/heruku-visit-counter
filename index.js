@@ -38,6 +38,6 @@ http.createServer(requestHandler)
 
 
 setInterval(function () {
-  http.get("http://heruku-visit-counter.herokuapp.com/count")
+  http.get("http://heruku-visit-counter.herokuapp.com/api/count")
 }, 29 * 60000); // every 29 minutes 
 

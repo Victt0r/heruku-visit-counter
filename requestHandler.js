@@ -14,6 +14,7 @@ async function requestHandler(request, response) {
     request.url = request.url.replace("/api", "")
     if (request.url == '/count') {
       countColl.updateOne({ id: 1 }, { $set: { count: ++count } })
+      db.collection("logs").insertOne({date: new Date})
       return response.end(String(count))
     }
     if (request.url.startsWith('/todo/')) {
@@ -44,8 +45,10 @@ async function requestHandler(request, response) {
         const name = decodeURI(request.headers.endeavor)
         const details = decodeURI(request.headers.details)
         const deadline = request.headers.deadline
-        db.collection("endeavor").insertOne({name, details, deadline})
-        return response.end("")
+        var obj
+        db.collection("endeavor")
+          .insertOne(obj = {name, details, deadline}, (err, doc)=> response.end(doc.insertedId.toString()))
+        return 
       }
 
     }
