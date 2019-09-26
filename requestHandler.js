@@ -1,15 +1,25 @@
 async function requestHandler(request, response) {
+  response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
   if (request.url == '/favicon.ico') return response.end('')
 
   if (request.url == '/') {
     const todoHTML = (await todoColl.find().toArray())
       .reduce((html, doc) => html + "<span>" + doc.todo + "</span><br>", "")
     countColl.updateOne({ id: 1 }, { $set: { count: ++count } })
-    response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
     return response.end(template.replace("${++count}", count)
       .replace("${todoHTML}", todoHTML))
-
   }
+
+  if (request.url == '/endeavors') {
+    const endsPath = require("path").join(__dirname, "endeavors.html")
+    response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
+    require("fs").readFile(endsPath, { encoding: 'utf-8' }, (err, html) => {
+      if (err) { return console.log(err) }
+      response.end(html)
+    })
+    return
+  }
+
   if (request.url.startsWith('/api/')) {
     request.url = request.url.replace("/api", "")
     if (request.url == '/count') {
@@ -41,16 +51,19 @@ async function requestHandler(request, response) {
     }
     if (request.url.startsWith('/endeavor/')) {
       request.url = request.url.replace("/endeavor", "")
-      if (request.url.startsWith('/add')){
+      if (request.url == '/add'){
         const name = decodeURI(request.headers.endeavor)
         const details = decodeURI(request.headers.details)
         const deadline = request.headers.deadline
         var obj
-        db.collection("endeavor")
+        db.collection("endeavors")
           .insertOne(obj = {name, details, deadline}, (err, doc)=> response.end(doc.insertedId.toString()))
         return 
       }
-
+      if (request.url == '/get'){
+        const endevGet = (await db.collection("endeavors").find().toArray())
+        return response.end(JSON.stringify(endevGet))
+      }
     }
 
   }

@@ -10,12 +10,16 @@
   </style>
 </head>
 
-<body> You are the visitor number ${++count}. <input id=newTask />
+<body> 
+  <div>
+    <a href="/endeavors">Endeavors</a>
+  </div>
+  You are the visitor number ${++count}. <input id=newTask />
   <div id=div>${todoHTML}</div>
 
   <script>
     newTask.onkeydown = function (event) {
-      if (event.key == 'Enter' && newTask.value != "") {
+      if (event.key == 'Enter' && newTask.value.trim()) {
         newTask.value = newTask.value.trim()
         div.innerHTML = div.innerHTML + "<span>" + newTask.value + "</span><br>"
         api("todo", "add", newTask.value.replace(/#/g, ""))
@@ -51,12 +55,7 @@
       parts.unshift(location.href + "api")
       return fetch(parts.join("/"))
     } 
-  fetch(location.href + "api/endeavor/add", {headers:{
-    endeavor:encodeURI("освоить программирование"),
-    details:encodeURI("знать js на уровне junior"),
-    deadline:"2020-03-17"
-
-  }})
+  
   </script>
 </body>
 
