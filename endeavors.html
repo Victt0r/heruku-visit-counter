@@ -3,9 +3,7 @@
 <head>
   <style>
     .selected {
-      font-weight: bold;
-      border: 1px dashed grey;
-      border-radius: 4px
+      color:rgb(130, 3, 221)
     }
 
     table {
@@ -34,19 +32,10 @@
       </tr>
     </thead>
     <tbody id=endvrs>
-      <!-- <tr>
-        <td>пробежать полуфрафон</td>
-        <td>за 120 мин</td>
-        <td>2020-09-25</td>
-      </tr>
-      <tr>
-        <td>раскрутить Ютуб канал</td>
-        <td>10 000 подписчиков</td>
-        <td>2020-06-01</td>
-      </tr> -->
     </tbody>
   </table>
   <script>
+    // загрузка стремлений
     fetch(location.origin + "/api/endeavor/get")
       .then(response => response.json()).then(arr =>
         endvrs.innerHTML += arr.reduce((html, doc) =>
@@ -57,6 +46,7 @@
           </tr>`, ""
         )
       )
+    // создание стремлений 
     create.onclick = function () {
       if (!newEnd.value.trim()) return
 
@@ -75,7 +65,27 @@
         <td>${deadline.value}</td>
       </tr>`
       })
+    }
+    // выделение стремления для редактирования || удаления
+    endvrs.onclick = function (event) {
+      // сделать иф а не тру кетч
+      try { endvrs.querySelector(".selected").classList.remove("selected") }
+      catch {}
+      event.target.parentElement.classList.add("selected")
+    }
+    document.body.onkeydown = function (event) {
+      var target = endvrs.querySelector(".selected")
+      if (target) {
+        // обновление (update) стремление
 
+        // удаление стремление
+        if (event.key == "Delete") {
+          target.remove()
+          fetch(location.origin + "/api/endeavor/delete", 
+            {headers: {id: target.id}})
+
+        }
+      }
     }
   </script>
 </body>

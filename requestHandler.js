@@ -57,12 +57,18 @@ async function requestHandler(request, response) {
         const deadline = request.headers.deadline
         var obj
         db.collection("endeavors")
-          .insertOne(obj = {name, details, deadline}, (err, doc)=> response.end(doc.insertedId.toString()))
+          .insertOne(obj = {name, details, deadline}, (err, doc)=> 
+            response.end(doc.insertedId.toString()))
         return 
       }
       if (request.url == '/get'){
         const endevGet = (await db.collection("endeavors").find().toArray())
         return response.end(JSON.stringify(endevGet))
+      }
+
+      if (request.url == '/delete') {
+        db.collection("endeavors")
+          .deleteOne({_id: require("mongodb").ObjectID(request.headers.id)})
       }
     }
 
