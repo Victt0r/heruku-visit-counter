@@ -55,20 +55,42 @@ async function requestHandler(request, response) {
         const name = decodeURI(request.headers.endeavor)
         const details = decodeURI(request.headers.details)
         const deadline = request.headers.deadline
-        var obj
         db.collection("endeavors")
-          .insertOne(obj = {name, details, deadline}, (err, doc)=> 
+          .insertOne({name, details, deadline}, (err, doc)=> 
             response.end(doc.insertedId.toString()))
         return 
       }
+
       if (request.url == '/get'){
         const endevGet = (await db.collection("endeavors").find().toArray())
         return response.end(JSON.stringify(endevGet))
       }
 
+      if (request.url == '/update'){
+        const name = decodeURI(request.headers.endeavor)
+        const details = decodeURI(request.headers.details)
+        const deadline = request.headers.deadline
+        db.collection("endeavors").updateOne({_id: require("mongodb")
+          .ObjectID(request.headers.id)}, {$set: {name, details, deadline}},
+            (err, result)=> {
+              if (result.modifiedCount) 
+                response.end(JSON.stringify({success:1}))
+              else response.end(JSON.stringify({success:0}))
+            }
+          )
+        return 
+      }
+
       if (request.url == '/delete') {
         db.collection("endeavors")
-          .deleteOne({_id: require("mongodb").ObjectID(request.headers.id)})
+          .deleteOne({_id: require("mongodb").ObjectID(request.headers.id)},
+            (err, resp)=> {
+              if (resp || resp == undefined && err == undefined) 
+                response.end(JSON.stringify({success:1}))
+              else response.end(JSON.stringify({success:0}))
+            }
+          )
+        return
       }
     }
 

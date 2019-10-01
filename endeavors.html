@@ -5,9 +5,11 @@
     .selected {
       color:rgb(130, 3, 221)
     }
-
     table {
       border-spacing: 17px 3px;
+    }
+    .hidden {
+      display: none
     }
   </style>
 </head>
@@ -17,10 +19,11 @@
     <div>
       <a href="/">ToDo</a>
     </div>
-    <input id=newEnd />
+    <input id=nameEnds />
     <input id="deadline" type="date">
     <div><textarea id="detail" cols="30" rows="10"></textarea></div>
     <button id=create>Создать Стремление</button>
+    <button id=save class=hidden>Сохранить Изменения</button>
   </div>
   Мои Стремления:
   <table>
@@ -48,19 +51,19 @@
       )
     // создание стремлений 
     create.onclick = function () {
-      if (!newEnd.value.trim()) return
+      if (!nameEnds.value.trim()) return
 
-      newEnd.value = newEnd.value.trim()
+      nameEnds.value = nameEnds.value.trim()
       var promise = fetch(location.origin + "/api/endeavor/add", {
         headers: {
-          endeavor: encodeURI(newEnd.value),
+          endeavor: encodeURI(nameEnds.value),
           details: encodeURI(detail.value),
           deadline: deadline.value
         }
       })
       promise.then(response => response.text()).then(text => {
         endvrs.innerHTML = endvrs.innerHTML + `<tr id="${text}">
-        <td>${newEnd.value}</td>
+        <td>${nameEnds.value}</td>
         <td>${detail.value}</td>
         <td>${deadline.value}</td>
       </tr>`
@@ -73,19 +76,49 @@
       catch {}
       event.target.parentElement.classList.add("selected")
     }
+
+    endvrs.ondblclick = function (event) {
+      var target = event.target.parentElement
+      // cделать функцию редактирования стремления
+    }
     document.body.onkeydown = function (event) {
       var target = endvrs.querySelector(".selected")
       if (target) {
         // обновление (update) стремление
-
+        if (event.key == "F2") {
+          nameEnds.value = target.children[0].innerText
+          detail.value = target.children[1].innerText
+          deadline.value = target.children[2].innerText
+          save.classList.remove("hidden")
+          // убрать кнопку "создать Стр"
+          save.onclick = function () {
+            nameEnds.value = nameEnds.value.trim()
+            fetch(location.origin + "/api/endeavor/update", {
+              headers: {
+                id: target.id,
+                endeavor: encodeURI(nameEnds.value),
+                details: encodeURI(detail.value),
+                deadline: deadline.value
+              }
+            }).then(response=> response.json())
+              .then(status=> { if (status.success) {
+                  target.children[0].innerText = nameEnds.value
+                  target.children[1].innerText = detail.value
+                  target.children[2].innerText = deadline.value
+                  nameEnds.value = detail.value = deadline.value = ""
+                  save.classList.add("hidden")
+              }})
+          }
+        }
         // удаление стремление
         if (event.key == "Delete") {
-          target.remove()
           fetch(location.origin + "/api/endeavor/delete", 
-            {headers: {id: target.id}})
-
+            {headers: {id: target.id}}).then(response=> response.json())
+              .then(status=> {if (status.success) target.remove()})
+          
         }
       }
     }
+    
   </script>
 </body>
