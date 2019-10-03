@@ -3,11 +3,13 @@
 <head>
   <style>
     .selected {
-      color:rgb(130, 3, 221)
+      color: rgb(130, 3, 221)
     }
+
     table {
       border-spacing: 17px 3px;
     }
+
     .hidden {
       display: none
     }
@@ -42,7 +44,7 @@
     fetch(location.origin + "/api/endeavor/get")
       .then(response => response.json()).then(arr =>
         endvrs.innerHTML += arr.reduce((html, doc) =>
-          html +`<tr id="${doc._id}">
+          html + `<tr id="${doc._id}">
             <td>${doc.name}</td>
             <td>${doc.details}</td>
             <td>${doc.deadline}</td>
@@ -58,7 +60,12 @@
         headers: {
           endeavor: encodeURI(nameEnds.value),
           details: encodeURI(detail.value),
-          deadline: deadline.value
+          deadline: deadline.value,
+          pkg: encodeURI(JSON.stringify({
+            name: nameEnds.value,
+            details: detail.value,
+            deadline: deadline.value,
+          }))
         }
       })
       promise.then(response => response.text()).then(text => {
@@ -71,54 +78,72 @@
     }
     // выделение стремления для редактирования || удаления
     endvrs.onclick = function (event) {
-      // сделать иф а не тру кетч
-      try { endvrs.querySelector(".selected").classList.remove("selected") }
-      catch {}
+      const prev = endvrs.querySelector(".selected")
+      if (prev) prev.classList.remove("selected")
       event.target.parentElement.classList.add("selected")
     }
 
     endvrs.ondblclick = function (event) {
       var target = event.target.parentElement
-      // cделать функцию редактирования стремления
+      updateEndeavors(target)
     }
+
     document.body.onkeydown = function (event) {
       var target = endvrs.querySelector(".selected")
       if (target) {
         // обновление (update) стремление
-        if (event.key == "F2") {
-          nameEnds.value = target.children[0].innerText
-          detail.value = target.children[1].innerText
-          deadline.value = target.children[2].innerText
-          save.classList.remove("hidden")
-          // убрать кнопку "создать Стр"
-          save.onclick = function () {
-            nameEnds.value = nameEnds.value.trim()
-            fetch(location.origin + "/api/endeavor/update", {
-              headers: {
-                id: target.id,
-                endeavor: encodeURI(nameEnds.value),
-                details: encodeURI(detail.value),
-                deadline: deadline.value
-              }
-            }).then(response=> response.json())
-              .then(status=> { if (status.success) {
-                  target.children[0].innerText = nameEnds.value
-                  target.children[1].innerText = detail.value
-                  target.children[2].innerText = deadline.value
-                  nameEnds.value = detail.value = deadline.value = ""
-                  save.classList.add("hidden")
-              }})
-          }
-        }
+        if (event.key == "F2") updateEndeavors(target)
         // удаление стремление
         if (event.key == "Delete") {
-          fetch(location.origin + "/api/endeavor/delete", 
-            {headers: {id: target.id}}).then(response=> response.json())
-              .then(status=> {if (status.success) target.remove()})
-          
+          fetch(location.origin + "/api/endeavor/delete", {
+            headers: {
+              id: target.id,
+              pkg: encodeURI(JSON.stringify({
+                id: target.id
+              }))
+            }
+          }).then(response => response.json())
+            .then(status => { if (status.success) target.remove() })
+
         }
       }
     }
-    
+
+    // Декларация Функций
+    function updateEndeavors(target) {
+      nameEnds.value = target.children[0].innerText
+      detail.value = target.children[1].innerText
+      deadline.value = target.children[2].innerText
+      save.classList.remove("hidden")
+      create.disabled = true
+      save.onclick = function () {
+        nameEnds.value = nameEnds.value.trim()
+        fetch(location.origin + "/api/endeavor/update", {
+          headers: {
+            id: target.id,
+            endeavor: encodeURI(nameEnds.value),
+            details: encodeURI(detail.value),
+            deadline: deadline.value,
+            pkg: encodeURI(JSON.stringify({
+              name: nameEnds.value,
+              details: detail.value,
+              deadline: deadline.value,
+              id: target.id
+            }))
+          }
+        }).then(response => response.json())
+          .then(status => {
+            if (status.success) {
+              target.children[0].innerText = nameEnds.value
+              target.children[1].innerText = detail.value
+              target.children[2].innerText = deadline.value
+              nameEnds.value = detail.value = deadline.value = ""
+              save.classList.add("hidden")
+              create.disabled = false
+
+            }
+          })
+      }
+    }
   </script>
 </body>
