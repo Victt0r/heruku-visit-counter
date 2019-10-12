@@ -47,7 +47,7 @@
     </tbody>
   </table>
   <script>
-    // загрузка стремлений
+    // загрузка действий
     api2("activity", "get", {}, arr => acts.innerHTML += 
       arr.reduce((html, doc) => html + tr(...Object.values(doc)), ""))
 
@@ -63,7 +63,7 @@
       api2("activity", "add", pkg, answer => acts.innerHTML = 
         acts.innerHTML + tr(answer.id, ...Object.values(pkg)))
     }
-    // выделение стремления для редактирования || удаления
+    // выделение действий для редактирования || удаления
     acts.onclick = function (event) {
       const prev = acts.querySelector(".selected")
       if (prev) prev.classList.remove("selected")
@@ -72,16 +72,17 @@
     }
 
     acts.ondblclick = function (event) {
+      if (event.target == acts) return
       var target = event.target.parentElement
-      updateEndeavors(target)
+      updateActs(target)
     }
 
     document.body.onkeydown = function (event) {
       var target = acts.querySelector(".selected")
       if (target) {
-        // обновление (update) стремление
-        if (event.key == "F2") updateEndeavors(target)
-        // удаление стремление
+        // обновление (update) действия
+        if (event.key == "F2") updateActs(target)
+        // удаление действия
         if (event.key == "Delete") 
           api2("activity", "delete", {id: target.id}, 
             status => { if (status.success) target.remove() })
@@ -90,8 +91,8 @@
 
     // Декларация Функций
 
-    // Функция редактирования Стремления
-    function updateEndeavors(target) {
+    // Функция редактирования Действия
+    function updateActs(target) {
       activity.value = target.children[0].innerText
       measure.value = target.children[1].innerText
       diff.value = target.children[2].innerText
@@ -107,7 +108,8 @@
         api2("activity", "update", pkg, status => {
           if (status.success) {
             target.outerHTML = tr(...Object.values(pkg))
-            activity.value = measure.value = diff.value = ""
+            activity.value = measure.value = ""
+            diff.value = 5
             save.classList.add("hidden")
             create.disabled = false
           }

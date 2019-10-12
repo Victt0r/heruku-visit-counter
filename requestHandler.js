@@ -110,18 +110,15 @@ module.exports = async function (request, response) {
       }
 
       if (request.url == '/update'){
-        handle("activities", "updateOne", ["_id"], ["name", "details", "deadline"], result=> {
-          if (result.modifiedCount) endOk()
-          else endFail()
-        })
+        handle("activities", "updateOne", ["_id"], ["name", "measure", "diff"],
+          result=> result.modifiedCount? endOk() : endFail())
         return 
       }
 
       if (request.url == '/delete') {
-        handle("activities", "deleteOne", ["_id"], (resp, err)=> {
-          if (resp || resp === undefined && err === undefined) endOk()
-          else endFail()
-        })
+        handle("activities", "deleteOne", ["_id"], (resp, err)=>
+          (resp || resp === undefined && err === undefined)? endOk() : endFail()
+        )
         return
       }
     }
