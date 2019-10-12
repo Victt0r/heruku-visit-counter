@@ -1,5 +1,7 @@
-async function requestHandler(request, response) {
+module.exports = async function (request, response) {
+  
   response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
+
   if (request.url == '/favicon.ico') return response.end('')
 
   if (request.url == '/') {
@@ -12,7 +14,6 @@ async function requestHandler(request, response) {
 
   if (request.url == '/endeavors') {
     const endsPath = require("path").join(__dirname, "endeavors.html")
-    response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
     require("fs").readFile(endsPath, { encoding: 'utf-8' }, (err, html) => {
       if (err) { return console.log(err) }
       response.end(html)
@@ -20,13 +21,24 @@ async function requestHandler(request, response) {
     return
   }
 
+  if (request.url == '/activities') {
+    const endsPath = require("path").join(__dirname, "activities.html")
+    require("fs").readFile(endsPath, { encoding: 'utf-8' }, (err, html) => {
+      if (err) { return console.log(err) }
+      response.end(html)
+    })
+    return
+  }
+  
   if (request.url.startsWith('/api/')) {
     request.url = request.url.replace("/api", "")
+
     if (request.url == '/count') {
       countColl.updateOne({ id: 1 }, { $set: { count: ++count } })
       db.collection("logs").insertOne({date: new Date})
       return response.end(String(count))
     }
+
     if (request.url.startsWith('/todo/')) {
       request.url = request.url.replace("/todo", "")
       
@@ -49,84 +61,99 @@ async function requestHandler(request, response) {
         return response.end("")
       }
     }
+
     if (request.url.startsWith('/endeavor/')) {
       request.url = request.url.replace("/endeavor", "")
+
       if (request.url == '/add'){ 
-        // take headers
-        // const name = decodeURI(request.headers.endeavor)
-        // const details = decodeURI(request.headers.details)
-        // const deadline = request.headers.deadline
-        const { name, details, deadline } = 
-          JSON.parse(decodeURI(request.headers.pkg))
-        // db request
-        db.collection("endeavors").insertOne({name, details, deadline}, 
-          // db response callback
-          (err, doc)=> {
-            if (err) console.log(err)
-            response.end(doc.insertedId.toString())
-          }
-        )
+        handle("endeavors", "insertOne", ["name", "details", "deadline"], doc=> 
+          end({id: doc.insertedId.toString()}))
         return 
       }
 
       if (request.url == '/get'){
-        // db request
-        db.collection("endeavors").find({}, 
-          // db response callback
-          (err, cur)=> {
-            if (err) console.log(err)
-            cur.toArray().then(arr=> response.end(JSON.stringify(arr)))
-          }
-        )
+        handle("endeavors", "find", [], 
+          cur=> cur.toArray().then(arr=> end(arr)))
         return
       }
 
       if (request.url == '/update'){
-        // ***handle({head: {name: "endeavor", details: ""}})
-        // take headers
-        // const name = decodeURI(request.headers.endeavor)
-        // const details = decodeURI(request.headers.details)
-        // const deadline = request.headers.deadline
-        // const id = request.headers.id
-        const { name, details, deadline, id } = 
-          JSON.parse(decodeURI(request.headers.pkg))
-        const _id = require("mongodb").ObjectID(id)
-        // db request
-        db.collection("endeavors")
-          .updateOne({_id}, {$set: {name, details, deadline}},
-            // db response callback
-            (err, result)=> {
-              if (err) console.log(err)
-              if (result.modifiedCount) 
-                response.end(JSON.stringify({success:1}))
-              else response.end(JSON.stringify({success:0}))
-            }
-          )
+        handle("endeavors", "updateOne", ["_id"], 
+          ["name", "details", "deadline"], result=> {
+          if (result.modifiedCount) endOk()
+          else endFail()
+          })
         return 
       }
 
       if (request.url == '/delete') {
-        // take headers
-        // const id = request.headers.id
-        const { id } = JSON.parse(decodeURI(request.headers.pkg))
-        const _id = require("mongodb").ObjectID(id)
-        // db request
-        db.collection("endeavors")
-          .deleteOne({_id},
-            // db response callback
-            (err, resp)=> {
-              if (err) console.log(err)
-              if (resp || resp == undefined && err == undefined) 
-                response.end(JSON.stringify({success:1}))
-              else response.end(JSON.stringify({success:0}))
-            }
-          )
+        handle("endeavors", "deleteOne", ["_id"], (resp, err)=> {
+          if (resp || resp === undefined && err === undefined) endOk()
+          else endFail()
+        })
         return
       }
     }
+
+    if (request.url.startsWith('/activity/')) {
+      request.url = request.url.replace("/activity", "")
+
+      if (request.url == '/add'){ 
+        handle("activities", "insertOne", ["name", "measure", "diff"], doc=> 
+          end({id: doc.insertedId.toString()}))
+        return 
+      }
+
+      if (request.url == '/get'){
+        handle("activities", "find", [], cur=> cur.toArray().then(arr=> end(arr)))
+        return
+      }
+
+      if (request.url == '/update'){
+        handle("activities", "updateOne", ["_id"], ["name", "details", "deadline"], result=> {
+          if (result.modifiedCount) endOk()
+          else endFail()
+        })
+        return 
+      }
+
+      if (request.url == '/delete') {
+        handle("activities", "deleteOne", ["_id"], (resp, err)=> {
+          if (resp || resp === undefined && err === undefined) endOk()
+          else endFail()
+        })
+        return
+      }
+    }
+    
+    function end(obj) { response.end(JSON.stringify(obj)) }
+    function endOk(obj={}) { end({success:1, ...obj}) }
+    function endFail(obj={}) { end({success:0, ...obj}) }
+
+    function handle(coll, method, filterProps, updProps, cb) {
+      if (typeof updProps == "function") cb = updProps, updProps = []
+
+      const pkg = JSON.parse(decodeURI(request.headers.pkg))
+      pkg._id = require("mongodb").ObjectID(pkg.id)
+      // const filter = filterProps.reduce((obj, prop) =>
+      //   ({...obj, [prop]: pkg[prop]}), {})
+      const filter = partial(filterProps, pkg)
+      const upd = updProps.length? [{$set: partial(updProps, pkg)}] : []
+
+      db.collection(coll)[method](filter, ...upd, (err, result) =>{
+        if (err) console.log(err)
+        cb(result, err)  
+      })
+    }
   }
+
   response.end(request.url + " is just wrong")
 }
 
-module.exports = requestHandler
+function partial(props, obj) {
+  var partObj = {}
+  for (var prop of props) partObj[prop] = obj[prop]
+  return partObj
+}
+
 

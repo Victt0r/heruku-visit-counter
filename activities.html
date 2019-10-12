@@ -20,65 +20,70 @@
   <div>
     <div>
       <a href="/">ToDo</a>
-      <a href="/activities">Activities</a>
+      <a href="/endeavors">Endeavors</a>
 
     </div>
-    <input id=nameEnds />
-    <input id="deadline" type="date">
-    <div><textarea id="detail" cols="30" rows="10"></textarea></div>
-    <button id=create>Создать Стремление</button>
+    <input id=activity>
+    <input id=measure>
+    <select id=diff>
+      <script>
+        for (i=1; i<11; ++i) diff.innerHTML += `<option value=${i}>${i}` 
+        diff.value="5"
+      </script>
+    </select>
+    <button id=create>Создать Действие</button>
     <button id=save class=hidden>Сохранить Изменения</button>
   </div>
-  Мои Стремления:
+  Мои Действия:
   <table>
     <thead>
       <tr>
         <th>Название</th>
-        <th>Детали</th>
-        <th>Дедлайн</th>
+        <th>Мера</th>
+        <th>Сложность</th>
       </tr>
     </thead>
-    <tbody id=endvrs>
+    <tbody id=acts>
     </tbody>
   </table>
   <script>
     // загрузка стремлений
-    api2("endeavor", "get", {}, arr => endvrs.innerHTML += 
+    api2("activity", "get", {}, arr => acts.innerHTML += 
       arr.reduce((html, doc) => html + tr(...Object.values(doc)), ""))
 
-    // создание стремлений 
+    // создание действий 
     create.onclick = function () {
-      if (!nameEnds.value.trim()) return
+      if (!activity.value.trim() || !measure.value.trim()) return
 
-      nameEnds.value = nameEnds.value.trim()
+      activity.value = activity.value.trim()
 
-      const pkg = {name: nameEnds.value, details: detail.value,
-                    deadline: deadline.value}
+      const pkg = {name: activity.value, measure: measure.value,
+                    diff: diff.value}
 
-      api2("endeavor", "add", pkg, answer => endvrs.innerHTML = 
-        endvrs.innerHTML + tr(answer.id, ...Object.values(pkg)))
+      api2("activity", "add", pkg, answer => acts.innerHTML = 
+        acts.innerHTML + tr(answer.id, ...Object.values(pkg)))
     }
     // выделение стремления для редактирования || удаления
-    endvrs.onclick = function (event) {
-      const prev = endvrs.querySelector(".selected")
+    acts.onclick = function (event) {
+      const prev = acts.querySelector(".selected")
       if (prev) prev.classList.remove("selected")
-      if (event.target != endvrs)
+      if (event.target != acts)
         event.target.parentElement.classList.add("selected")
     }
 
-    endvrs.ondblclick = function (event) {
+    acts.ondblclick = function (event) {
       var target = event.target.parentElement
       updateEndeavors(target)
     }
 
     document.body.onkeydown = function (event) {
-      var target = endvrs.querySelector(".selected")
+      var target = acts.querySelector(".selected")
       if (target) {
         // обновление (update) стремление
         if (event.key == "F2") updateEndeavors(target)
         // удаление стремление
         if (event.key == "Delete") 
-          api2("endeavor", "delete", {id: target.id}, 
+          api2("activity", "delete", {id: target.id}, 
             status => { if (status.success) target.remove() })
       }
     }
@@ -87,22 +92,22 @@
 
     // Функция редактирования Стремления
     function updateEndeavors(target) {
-      nameEnds.value = target.children[0].innerText
-      detail.value = target.children[1].innerText
-      deadline.value = target.children[2].innerText
+      activity.value = target.children[0].innerText
+      measure.value = target.children[1].innerText
+      diff.value = target.children[2].innerText
 
       save.classList.remove("hidden")
       create.disabled = true
       save.onclick = function () {
-        nameEnds.value = nameEnds.value.trim()
+        activity.value = activity.value.trim()
 
-        const pkg = {id: target.id, name: nameEnds.value, details: detail.value,
-                      deadline: deadline.value}
+        const pkg = {id: target.id, name: activity.value, 
+          measure: measure.value, diff: diff.value}
 
-        api2("endeavor", "update", pkg, status => {
+        api2("activity", "update", pkg, status => {
           if (status.success) {
             target.outerHTML = tr(...Object.values(pkg))
-            nameEnds.value = detail.value = deadline.value = ""
+            activity.value = measure.value = diff.value = ""
             save.classList.add("hidden")
             create.disabled = false
           }
@@ -116,9 +121,9 @@
       }).then(response => response.json()).then(callback)
     }
     // Ф-ия разметка ряда таблицы
-    function tr(id, name, detail, deadline) {
-      return `<tr id="${id}"><td>${name}</td><td>${detail}</td>
-              <td>${deadline}</td></tr>`
+    function tr(id, name, measure, diff) {
+      return `<tr id="${id}"><td>${name}</td><td>${measure}</td>
+              <td>${diff}</td></tr>`
     }
   </script>
 </body>
