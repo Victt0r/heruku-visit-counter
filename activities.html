@@ -5,13 +5,40 @@
     .selected {
       color: rgb(130, 3, 221)
     }
-
+    tr:not(.selected) button { 
+      display: none;
+    }
     table {
       border-spacing: 17px 3px;
     }
 
     .hidden {
-      display: none
+      display: none !important
+    }
+
+    #glass {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      position: absolute;
+
+    }
+    [type=number] {
+      width: 41px;
+      text-align: center;
+    }
+
+    #modal {
+      width: 721px;
+      /* text-align: center; */
+      margin: auto;
+      height: 200px;
+      border: 2px solid;
+      padding: 20px 80px ;
+      box-sizing: border-box;
+      background: rgb(250, 249, 249);
     }
   </style>
 </head>
@@ -36,6 +63,7 @@
   </div>
   Мои Действия:
   <table>
+
     <thead>
       <tr>
         <th>Название</th>
@@ -46,10 +74,27 @@
     <tbody id=acts>
     </tbody>
   </table>
+
+  <div id=glass class="hidden">
+    <div id=modal>
+      <span><b id=act></b>, сложность</span> <b id=differ></b> <br> 
+        <!-- подставить нужное значение   -->
+      <span>На сколько дней Квест? </span>
+        <input id=term type="number" min=1><br>
+      <span>Сколько дней форы (если есть)?</span>
+        <input id=fora type="number" min=0><br>
+      <span>Залог:</span> <b>12</b> <span>Цена Квеста:</span> <b id=cost></b> <br>
+      <span>Начало Квеста</span> 
+        <label><input type="radio" name=startday> сегодня </label>
+          <label><input type="radio" name=startday> завтра </label><br>
+      <span>Срок Квеста:</span> <b>14.10-18.10</b> <br>
+      <button>Взять Квест</button> <button id=cancel>Отмена</button>
+    </div>
+  </div>
   <script>
     // загрузка действий
-    api2("activity", "get", {}, arr => acts.innerHTML += 
-      arr.reduce((html, doc) => html + tr(...Object.values(doc)), ""))
+    api2("activity", "get", {}, arr=> acts.innerHTML += 
+      arr.reduce((html, doc)=> html + tr(...Object.values(doc)), ""))
 
     // создание действий 
     create.onclick = function () {
@@ -64,11 +109,21 @@
         acts.innerHTML + tr(answer.id, ...Object.values(pkg)))
     }
     // выделение действий для редактирования || удаления
-    acts.onclick = function (event) {
+
+    acts.onclick = function ({ target }) {
+      if (target.tagName == "BUTTON") {
+        target = target.parentNode.parentNode
+        act.innerText = target.children[0].innerText+" "+
+          target.children[1].innerText
+        differ.innerText = target.children[2].innerText
+        glass.classList.remove("hidden")
+        return
+      }
+
       const prev = acts.querySelector(".selected")
       if (prev) prev.classList.remove("selected")
-      if (event.target != acts)
-        event.target.parentElement.classList.add("selected")
+      if (target != acts)
+        target.parentElement.classList.add("selected")
     }
 
     acts.ondblclick = function (event) {
@@ -88,7 +143,16 @@
             status => { if (status.success) target.remove() })
       }
     }
-
+    term.oninput = fora.oninput = function () {
+      cost.innerText = differ.innerText*term.value
+    }
+    cancel.onclick = function () {
+      glass.classList.add("hidden")
+      cost.innerText = term.value =""
+    }
+    glass.onclick = function ({ target }) {
+      if (target == glass) cancel.onclick()
+    }
     // Декларация Функций
 
     // Функция редактирования Действия
@@ -125,7 +189,8 @@
     // Ф-ия разметка ряда таблицы
     function tr(id, name, measure, diff) {
       return `<tr id="${id}"><td>${name}</td><td>${measure}</td>
-              <td>${diff}</td></tr>`
+              <td>${diff}</td><td><button>Взять Квест</button></td></tr>`
     }
+
   </script>
 </body>
