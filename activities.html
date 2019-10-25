@@ -113,7 +113,7 @@
     take.onclick = function () {
       const pkg = {actId: take.actId, term: +term.value, fora: +fora.value, 
                     start: take.date }
-      api2("quest", "add", pkg, console.log)
+      api2("quest", "add", pkg, answer => alert("Квест взят, его АйДи: " + answer))
     }
     // выделение действий для редактирования || удаления
 

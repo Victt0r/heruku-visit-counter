@@ -131,22 +131,20 @@ module.exports = async function (request, response) {
         const quest = {...pkg}
         pkg._id = require("mongodb").ObjectID(pkg.actId)  
         const {diff} = await db.collection("activities").findOne({_id: pkg._id})
-        const pledge = (quest.term-quest.fora)*diff
-        const reward = quest.term*diff 
+        quest.pledge = (quest.term-quest.fora)*diff
+        quest.reward = quest.term*diff 
         var questend = new Date(quest.start)
-        questend.setDate(questend.getDate() + (+quest.term))
+        questend.setDate(quest.term - 1 + questend.getDate())
         quest.end = JSON.stringify(questend).match(/[\w-]{10}/)[0]
-        
         quest.status = JSON.stringify(new Date)
           .match(/[\w-]{10}/)[0]==quest.start? "ongoing":"future"
-        console.log(quest.status)
-        // actId: 953589384759579875, fora: 0,
-        //   term: 8, start: "2019-10-23", end: "2019-10-30", pledge: 40, reward: 40, status: "ongoing"
-        // handle("quest", "insertOne", ["actId", "term", "fora", "start"], doc=> 
-        //   end({id: doc.insertedId.toString()}))
-
-
-        db.collection("quest").insertOne(quest)
+          
+        db.collection("quest").insertOne(quest, (err, result) =>{
+          if (err) console.log(err)
+          response.end(JSON.stringify(quest._id))
+          // console.log("Запись добавлена ​​как" + " " + quest._id)
+        })
+        // написать ответ клиенту айдишником,обработка ответа ( дать юзеру ссылку для перехода на страницу квеста)
         return 
       }
     }
