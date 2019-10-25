@@ -122,6 +122,34 @@ module.exports = async function (request, response) {
         return
       }
     }
+// Quests
+// add quests
+    if (request.url.startsWith('/quest/')) {
+      request.url = request.url.replace("/quest", "")
+      if (request.url == '/add') {
+        const pkg = JSON.parse(decodeURI(request.headers.pkg))
+        const quest = {...pkg}
+        pkg._id = require("mongodb").ObjectID(pkg.actId)  
+        const {diff} = await db.collection("activities").findOne({_id: pkg._id})
+        const pledge = (quest.term-quest.fora)*diff
+        const reward = quest.term*diff 
+        var questend = new Date(quest.start)
+        questend.setDate(questend.getDate() + (+quest.term))
+        quest.end = JSON.stringify(questend).match(/[\w-]{10}/)[0]
+        
+        quest.status = JSON.stringify(new Date)
+          .match(/[\w-]{10}/)[0]==quest.start? "ongoing":"future"
+        console.log(quest.status)
+        // actId: 953589384759579875, fora: 0,
+        //   term: 8, start: "2019-10-23", end: "2019-10-30", pledge: 40, reward: 40, status: "ongoing"
+        // handle("quest", "insertOne", ["actId", "term", "fora", "start"], doc=> 
+        //   end({id: doc.insertedId.toString()}))
+
+
+        db.collection("quest").insertOne(quest)
+        return 
+      }
+    }
     
     function end(obj) { response.end(JSON.stringify(obj)) }
     function endOk(obj={}) { end({success:1, ...obj}) }

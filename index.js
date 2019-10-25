@@ -1,6 +1,6 @@
 const PORT = process.env.PORT || 3000,
   http = require("http"),
-  requestHandler = require("./requestHandler"),
+  // requestHandler = require("./requestHandler"),
   fs = require("fs"),
   path = require("path"),
   templatePath = path.join(__dirname, "indexTemplate.html"),
@@ -32,8 +32,12 @@ mongoClient.connect(async function (err, client) {
 // server = objectToCreateServers.createServer(functionToHandleRequests)
 // server.listen(port)
 
-
-http.createServer(requestHandler)
+http.createServer((request, response)=> {
+  if (!process.env.PORT) {
+    try { delete require.cache[require.resolve("./requestHandler")] } catch {}
+  }
+  require("./requestHandler")(request, response)
+})
   .listen(PORT, () => console.log("Server started on port 3000"))
 
 

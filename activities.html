@@ -83,12 +83,12 @@
         <input id=term type="number" min=1><br>
       <span>Сколько дней форы (если есть)?</span>
         <input id=fora type="number" min=0><br>
-      <span>Залог:</span> <b>12</b> <span>Цена Квеста:</span> <b id=cost></b> <br>
+      <span>Залог:</span> <b id=pledge></b> <span>Цена Квеста:</span> <b id=cost></b> <br>
       <span>Начало Квеста</span> 
-        <label><input type="radio" name=startday> сегодня </label>
-          <label><input type="radio" name=startday> завтра </label><br>
-      <span>Срок Квеста:</span> <b>14.10-18.10</b> <br>
-      <button>Взять Квест</button> <button id=cancel>Отмена</button>
+        <label><input id=today type="radio" name=startday> сегодня </label>
+          <label><input id=tomorrow type="radio" name=startday> завтра </label><br>
+      <span>Срок Квеста:</span> <b id=dateQuest></b> <br>
+      <button id=take disabled>Взять Квест</button> <button id=cancel>Отмена</button>
     </div>
   </div>
   <script>
@@ -108,11 +108,19 @@
       api2("activity", "add", pkg, answer => acts.innerHTML = 
         acts.innerHTML + tr(answer.id, ...Object.values(pkg)))
     }
+
+    // взять квест
+    take.onclick = function () {
+      const pkg = {actId: take.actId, term: +term.value, fora: +fora.value, 
+                    start: take.date }
+      api2("quest", "add", pkg, console.log)
+    }
     // выделение действий для редактирования || удаления
 
     acts.onclick = function ({ target }) {
       if (target.tagName == "BUTTON") {
         target = target.parentNode.parentNode
+        take.actId = target.id
         act.innerText = target.children[0].innerText+" "+
           target.children[1].innerText
         differ.innerText = target.children[2].innerText
@@ -144,15 +152,35 @@
       }
     }
     term.oninput = fora.oninput = function () {
+      pledge.innerText = (term.value-(fora.value || 0))*differ.innerText
       cost.innerText = differ.innerText*term.value
+      today.onclick()
     }
-    cancel.onclick = function () {
-      glass.classList.add("hidden")
-      cost.innerText = term.value =""
-    }
+    cancel.onclick = remove
     glass.onclick = function ({ target }) {
-      if (target == glass) cancel.onclick()
+      if (target == glass) remove()
     }
+    today.onclick = tomorrow.onclick = function () {
+      if (today.checked) {
+        var endQuest = new Date()
+        endQuest.setDate(endQuest.getDate() + (+term.value)-1)
+        dateQuest.innerHTML = dateStr(new Date) + "-" +
+          dateStr(endQuest)
+        take.date = JSON.stringify(new Date).match(/[\w-]{10}/)[0]
+      }
+      if (tomorrow.checked) {
+        var morrow = new Date()
+        morrow.setDate(morrow.getDate() + 1)
+        var endQuest = new Date()
+        endQuest.setDate(endQuest.getDate() + (+term.value))
+        dateQuest.innerHTML = dateStr(morrow) + "-" +
+          dateStr(endQuest)
+        take.date = JSON.stringify(morrow).match(/[\w-]{10}/)[0]
+        console.log(take.date)
+      }
+      switchTake()
+    }
+
     // Декларация Функций
 
     // Функция редактирования Действия
@@ -190,6 +218,26 @@
     function tr(id, name, measure, diff) {
       return `<tr id="${id}"><td>${name}</td><td>${measure}</td>
               <td>${diff}</td><td><button>Взять Квест</button></td></tr>`
+    }
+    
+    function dateStr(datetime) {
+      var month = String(datetime.getMonth()+1)
+      var day = String(datetime.getDate())
+      return day.padStart(2, 0)+"."+month.padStart(2, 0)
+    }
+
+    function switchTake() {
+      if (pledge.innerText > 0 && dateQuest.innerHTML != "") {
+        document.getElementById("take").disabled = false
+      }
+      else document.getElementById("take").disabled = true
+    }
+    function remove() {
+      glass.classList.add("hidden")
+      cost.innerText = term.value = fora.value = 
+        pledge.innerHTML = dateQuest.innerHTML = ""
+      today.checked = tomorrow.checked = false
+      document.getElementById("take").disabled = true
     }
 
   </script>
