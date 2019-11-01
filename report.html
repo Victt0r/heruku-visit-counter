@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Report List</title>
+  <style>
+    body {
+      text-align: center;
+    }
+
+    table {
+      margin: auto;
+    }
+
+    td {
+      text-align: left;
+    }
+
+    #debt {
+      background: rgb(206, 206, 206);
+      font-size: 18px
+    }
+
+    #going {
+      background: honeydew;
+      font-size: 21px
+    }
+
+    #notif {
+      margin-left: 5cm
+    }
+
+    #num {
+      color: red
+    }
+
+    #glass {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      position: absolute;
+    }
+
+    #modal {
+      width: 321px;
+      /* text-align: center; */
+      /* margin-left: 20cm; */
+      margin-top: -40%;
+      height: 200px;
+      border: 2px solid;
+      padding: 20px 80px;
+      /* box-sizing: border-box; */
+      background: rgb(250, 249, 249);
+    }
+
+    .hidden {
+      display: none !important
+    }
+  </style>
+</head>
+
+<body>
+  <div id="notif">
+    <span>Notifications</span>
+    <span id="num">4</span>
+  </div>
+  <div id="glass" class="hidden">
+    <div id="cards" style="background: coral; display: inline; margin: auto;">
+      <script>
+        function makeCards(arr, cont) {
+          cont.innerHTML = arr.reduce((html, str, i) =>
+            html + `<div id="modal" style="margin-left: ${i*20}px; z-index: ${30-i}">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td>${str}</td>
+                      <td><input type="checkbox"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+        `, "")
+        }
+        makeCards(["dd", "ii", "oo", "dd", "ii", "oo"], cards)
+      </script>
+      <!-- <div id="modal" style="margin-top: -40%;">
+        <table>
+          <tbody>
+            <tr>
+              <td>Отжиматься 30 раз</td>
+              <td><input type="checkbox"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="modal" style="margin-top: -40%;">
+        <table>
+          <tbody>
+            <tr>
+              <td>Отжиматься 30 раз</td>
+              <td><input type="checkbox"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="modal" style="margin-top: -40%;">
+        <table>
+          <tbody>
+            <tr>
+              <td>Отжиматься 30 раз</td>
+              <td><input type="checkbox"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div> -->
+    </div>
+  </div>
+  <div id="debt">
+    <span id="headers">Debt</span>
+    <table>
+      <tbody>
+        <tr>
+          <td>Отжиматься 30 раз</td>
+          <td><input type="checkbox"></td>
+        </tr>
+        <tr>
+          <td>Смотреть курс 30 минут</td>
+          <td><input type="checkbox"></td>
+        </tr>
+        <tr>
+          <td>Разминка 30 минут</td>
+          <td><input type="checkbox"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="going">
+    <span>Going</span>
+    <table>
+      <tbody>
+        <tr>
+          <td>Бегать 3 км</td>
+          <td><input type="checkbox"></td>
+        </tr>
+        <tr>
+          <td>Ранний подъем </td>
+          <td><input type="checkbox"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="tomorow" class="hidden">
+    <span>Tomorow</span>
+    <table>
+      <tbody>
+        <tr>
+          <td>Бегать 3 км</td>
+          <td><input type="checkbox"></td>
+        </tr>
+        <tr>
+          <td>Ранний подъем </td>
+          <td><input type="checkbox"></td>
+        </tr>
+        <tr>
+          <td>Программировать 2 часа</td>
+          <td><input type="checkbox"></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+  <script>
+    notif.onclick = function () {
+      glass.classList.remove("hidden")
+    }
+    glass.onclick = function ({ target }) {
+      if (target == glass) glass.classList.add("hidden")
+    }
+    datex = new Date
+    if (new Date > datex.setHours(14)) tomorow.classList.remove("hidden")
+  </script>
+</body>
+
+</html>

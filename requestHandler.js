@@ -29,6 +29,16 @@ module.exports = async function (request, response) {
     })
     return
   }
+
+  if (request.url == '/quests') {
+    const endsPath = require("path").join(__dirname, "quests.html")
+    require("fs").readFile(endsPath, { encoding: 'utf-8' }, (err, html) => {
+      if (err) { return console.log(err) }
+      response.end(html)
+    })
+    return
+  }
+
   
   if (request.url.startsWith('/api/')) {
     request.url = request.url.replace("/api", "")
@@ -178,5 +188,4 @@ function partial(props, obj) {
   for (var prop of props) partObj[prop] = obj[prop]
   return partObj
 }
-
 
