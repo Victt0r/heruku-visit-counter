@@ -1,10 +1,11 @@
 import Score from "./Score.js"
+import Ribbon from "./Ribbon.js"
 
 class ReportManager {
   constructor(container) {
     container.append(this.render())
     this.score = new Score(this.element)
-    this.ribbon = new Ribbon()
+    this.ribbon = new Ribbon(this.element)
   }
 
   render() {
