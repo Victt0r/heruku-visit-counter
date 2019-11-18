@@ -1,11 +1,19 @@
 import RepBlock from "./RepBlock.js"
 
 class Ribbon {
-  constructor (container) {
+  constructor (container, read) {
     container.append(this.render())
     this.blocks = []
-    for (let i=0; i<3; ++i) this.blocks.push(new RepBlock)
-    this.blocks.forEach(block=> this.element.append(block.element))
+    const readAndBuild = ()=> {
+      read().then(arrData=> {
+        for (const objData of arrData) this.blocks.push(new RepBlock(objData))
+        this.blocks.forEach(block=> this.element.append(block.element))
+      }).catch(err=> {
+        console.log(err)
+        setTimeout(readAndBuild, 1000)
+      })
+    }
+    readAndBuild()
   }
   render() {
     const div = document.createElement("div")
@@ -13,6 +21,5 @@ class Ribbon {
     return this.element = div
   }
 
-  
 }
 export default Ribbon
